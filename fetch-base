@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+if [ "$(git rev-parse --is-inside-work-tree 2> /dev/null)" != "true" ]
+then
+  echo "The current directory is not a git repository."
+  exit 0
+fi
+
+DEFAULT_BRANCH=$(git rev-parse --abbrev-ref origin/HEAD | cut -f 2 -d /)
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$(git rev-parse $DEFAULT_BRANCH | head -c 40)" == "$(git ls-remote origin $DEFAULT_BRANCH | head -c 40)" ]
+then
+  echo "${DEFAULT_BRANCH} is already up to date with origin/${DEFAULT_BRANCH}."
+  exit 0
+fi
+
+if [ "$DEFAULT_BRANCH" != "$CURRENT_BRANCH" ]
+then
+    git fetch origin "$DEFAULT_BRANCH":"$DEFAULT_BRANCH"
+else
+  # The default branch is already selected, so just do a pull
+  git pull origin "$CURRENT_BRANCH"
+fi
+
+echo "${DEFAULT_BRANCH} is now up to date with origin/${DEFAULT_BRANCH}."
